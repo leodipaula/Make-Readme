@@ -7,7 +7,7 @@ Gere arquivos `README.md` automaticamente com ajuda de IA! Este projeto usa a [A
 ## 📦 Requisitos
 
 - [Rust](https://www.rust-lang.org/) instalado
-- Uma conta e token válido da [Hugging Face](https://huggingface.co)
+- Uma conta e token válido da [Hugging Face](https://huggingface.co) que só precisa ser do tipo Read
 - PowerShell
 
 ---
