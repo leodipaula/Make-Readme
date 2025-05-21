@@ -1,0 +1,19 @@
+# Rust build artifacts
+/target/
+/gerador_readme/target/
+**/*.rs.bk
+Cargo.lock
+
+# Environment files
+.env
+/gerador_readme/.env
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Windows specific
+Thumbs.db
+Desktop.ini
