@@ -96,8 +96,6 @@ URL: https://github.com/$repoSlug
         if ([string]::IsNullOrEmpty($readme)) {
             throw "No output generated from gerador_readme.exe"
         }
-
-        Write-Host "✅ README content generated successfully"
     }
     catch {
         Write-Error "❌ Failed to generate README: $_"
@@ -105,9 +103,6 @@ URL: https://github.com/$repoSlug
     }
 
     $readmePath = Join-Path $RepoPath "README.md"
-
-    Write-Host "Debug: readmePath = '$readmePath'"
-    Write-Host "Debug: readme content length = $($readme.Length)"
 
     if (Test-Path $readmePath) {
         $original = Get-Content $readmePath -Raw -Encoding UTF8

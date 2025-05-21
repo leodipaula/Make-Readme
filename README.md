@@ -52,7 +52,9 @@ O script irá gerar (ou sobrescrever) um README.md com base nas informações do
 ## 🧪 Exemplo
 
 ```powershell
-Make-Readme "C:\Users\leodipaula\Projetos\Java\LojaGames"
+Make-Readme C:\Users\leodipaula\Projetos\Java\LojaGames
+# Ou também pode usar o alias:
+mr C:\Users\leodipaula\Projetos\Java\LojaGames
 ```
 
 ## 🤝 Contribuição
