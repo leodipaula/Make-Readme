@@ -54,3 +54,7 @@ O script irá gerar (ou sobrescrever) um README.md com base nas informações do
 ```powershell
 Make-Readme "C:\Users\leodipaula\Projetos\Java\LojaGames"
 ```
+
+## 🤝 Contribuição
+
+Sinta-se à vontade para forkar e mandar PR ou abrir uma issue sobre correções, melhorias ou novas funcionalidades.  
