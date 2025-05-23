@@ -6,6 +6,7 @@ Push-Location "$projectRoot\gerador_readme"
 cargo build --release
 Pop-Location
 
+# Define the function with proper string formatting
 $functionDefinition = @'
 # >>> MAKE-README START
 <#
@@ -21,8 +22,8 @@ $functionDefinition = @'
 function Make-Readme {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, Position=0)]
-        [string]$RepoPath
+        [Parameter(Position=0)]
+        [string]$RepoPath = "."
     )
 
     if (-not (Test-Path $RepoPath -PathType Container)) {
@@ -46,31 +47,28 @@ Set-Alias -Name mr -Value Make-Readme
 # <<< MAKE-README END
 '@
 
+# Replace placeholder with actual path
 $functionDefinition = $functionDefinition.Replace('SCRIPTPATH', $scriptPath)
 
+# Clean up and update profile
 $psProfile = $PROFILE.CurrentUserAllHosts
 if (-not (Test-Path $psProfile)) {
     New-Item -Path $psProfile -ItemType File -Force | Out-Null
-    Write-Host "✅ Arquivo de perfil criado em: $psProfile"
 }
 
-$currentProfile = Get-Content $psProfile -Raw -ErrorAction SilentlyContinue
-if (-not $currentProfile) { $currentProfile = "" }
+# Read current profile content
+$currentContent = Get-Content $psProfile -Raw -ErrorAction SilentlyContinue
+if (-not $currentContent) { $currentContent = "" }
 
-$startMarker = "# >>> MAKE-README START"
-$endMarker = "# <<< MAKE-README END"
-$pattern = "(?ms)$startMarker.*?$endMarker"
+# Remove any existing Make-Readme function
+$pattern = '(?ms)# >>> MAKE-README START.*?# <<< MAKE-README END'
+$updatedContent = [regex]::Replace($currentContent, $pattern, '')
 
-if ($currentProfile -match $pattern) {
-    $updatedProfile = [regex]::Replace($currentProfile, $pattern, $functionDefinition)
-    Write-Host "🔄 Atualizando função Make-Readme existente..."
-}
-else {
-    $updatedProfile = $currentProfile.TrimEnd() + "`n`n" + $functionDefinition
-    Write-Host "➕ Adicionando nova função Make-Readme..."
-}
+# Add the new function definition
+$updatedContent += "`n`n" + $functionDefinition
 
-Set-Content -Path $psProfile -Value $updatedProfile -Force -Encoding UTF8
+# Write the updated content back to the profile
+Set-Content -Path $psProfile -Value $updatedContent -Force -Encoding UTF8
 
 Write-Host "✅ Função Make-Readme instalada com sucesso!"
 Write-Host "`n🎉 Para usar, feche e reabra o PowerShell, então execute:" -ForegroundColor Yellow
