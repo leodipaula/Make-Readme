@@ -210,6 +210,6 @@ $readme
     }
 }
 catch {
-    Write-Error "❌ Container error: $_"
+    Write-Error "❌ Error: $_"
     exit 1
 }
