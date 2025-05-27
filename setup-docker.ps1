@@ -31,32 +31,27 @@ function Make-Docker {
         [string]$RepoPath = "."
     )
 
-    if (-not (Test-Path $RepoPath -PathType Container)) {
-        Write-Error "ERROR: O caminho informado nao existe ou nao e um diretorio: $RepoPath"
-        return
-    }
-
-    Write-Host "🐳 Gerando README.md via Docker, por favor aguarde..." -ForegroundColor Yellow
+    Write-Host "🐳 Gerando README.md via Docker, por favor aguarde..."
 
     try {
         $absolutePath = Resolve-Path $RepoPath
-        $dockerPath = if ($IsWindows) {
-            ($absolutePath.Path -replace "\\", "/") -replace "^([A-Za-z]):", "/`$1"
-        } elseif ($IsMacOS) {
-            $absolutePath.Path -replace "^/Users", "/home"
-        } else {
-            $absolutePath.Path
+        if (-not $?) {
+            throw "Caminho inválido: $RepoPath"
         }
 
-        $scriptPath = "SCRIPTPATH"
-        & $scriptPath -RepoPath $dockerPath
+        $makeDockerPath = "SCRIPTPATH"
+        & "$makeDockerPath" -RepoPath "$RepoPath"
+        if (-not $?) {
+            throw "Falha ao executar Make-Docker"
+        }
     }
     catch {
-        Write-Error "ERROR: Erro ao executar Make-Docker: $_"
+        Write-Error "Erro ao executar Make-Docker: $_"
     }
 }
 
-Set-Alias -Name mdr -Value Make-Docker -ErrorAction Stop
+# Criar alias seguro
+New-Alias -Name mdr -Value Make-Docker -ErrorAction Stop -Force
 # <<< MAKE-DOCKER END
 '@
 
