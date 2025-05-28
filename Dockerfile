@@ -18,8 +18,4 @@ WORKDIR /app/gerador_readme
 RUN cargo build --release && \
     chmod +x ./target/release/gerador_readme
 
-WORKDIR /app
-RUN echo '#!/bin/sh\n/app/gerador_readme/target/release/gerador_readme --prompt "$PROMPT"' > /app/entrypoint.sh && \
-    chmod +x /app/entrypoint.sh
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/gerador_readme/target/release/gerador_readme"]

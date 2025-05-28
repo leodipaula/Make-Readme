@@ -165,11 +165,12 @@ else {
 
 Write-Host "🚀 Running container..."
 try {
+    $escapedPrompt = $prompt -replace '"', '\"'
+
     $containerOutput = docker run --rm `
         -v "${dockerVolume}:/repo" `
         -e "HUGGINGFACE_API_TOKEN=$token" `
-        -e "PROMPT=$prompt" `
-        make-readme 2>&1
+        make-readme --prompt "$escapedPrompt" 2>&1
 
     if ($LASTEXITCODE -ne 0) {
         throw "Container execution failed: $($containerOutput)"
