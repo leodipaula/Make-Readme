@@ -2,7 +2,10 @@
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
 $projectRoot = $PSScriptRoot
-$scriptPath = Join-Path $projectRoot "Make-Docker.ps1"
+
+# Get the full path to Make-Docker.ps1
+$makeDockerPath = Join-Path $projectRoot "Make-Docker.ps1"
+$makeDockerPath = [System.IO.Path]::GetFullPath($makeDockerPath)
 
 $checkMark = [char]0x221A
 $rocket = "*"
@@ -34,31 +37,34 @@ function Make-Docker {
     Write-Host "🐳 Gerando README.md via Docker, por favor aguarde..."
 
     try {
-        $absolutePath = Resolve-Path $RepoPath
-        if (-not $?) {
-            throw "Caminho inválido: $RepoPath"
+        # Use the pre-stored full path to Make-Docker.ps1
+        $scriptPath = "MAKE_DOCKER_PATH"
+        if (-not (Test-Path $scriptPath)) {
+            throw "Script Make-Docker.ps1 não encontrado em: $scriptPath"
         }
 
-        $makeDockerPath = "SCRIPTPATH"
-        & "$makeDockerPath" -RepoPath "$RepoPath"
+        # Resolver caminho do repositório
+        $RepoPath = Resolve-Path $RepoPath -ErrorAction Stop
+        
+        # Executar script com caminho completo
+        & "$scriptPath" -RepoPath "$RepoPath"
         if (-not $?) {
             throw "Falha ao executar Make-Docker"
         }
     }
     catch {
         Write-Error "Erro ao executar Make-Docker: $_"
+        return
     }
 }
 
-# Criar alias seguro
-New-Alias -Name mdr -Value Make-Docker -ErrorAction Stop -Force
+# Criar alias de forma segura
+Set-Alias -Name mdr -Value Make-Docker -Option AllScope -Scope Global -Force
 # <<< MAKE-DOCKER END
 '@
 
-$escapedPath = $scriptPath.Replace('\', '\\')
-$functionDefinition = $functionDefinition.Replace('SCRIPTPATH', $escapedPath)
-
-$functionDefinition = $functionDefinition.Replace('SCRIPTPATH', "`"$scriptPath`"")
+# Replace placeholder with actual path
+$functionDefinition = $functionDefinition.Replace('MAKE_DOCKER_PATH', $makeDockerPath)
 
 try {
     $psProfile = $PROFILE.CurrentUserAllHosts
@@ -79,14 +85,11 @@ try {
 
     $updatedContent = $currentContent.TrimEnd() + "`n`n" + $functionDefinition
     [System.IO.File]::WriteAllText($psProfile, $updatedContent, [System.Text.Encoding]::UTF8)
-
+    
     Write-Host "$($emoji.Check) Funcao Make-Docker instalada com sucesso!"
-    Write-Host "`n$($emoji.Rocket) Para usar, feche e reabra o PowerShell, entao execute:" -ForegroundColor Yellow
-    Write-Host "   Make-Docker -RepoPath <caminho-do-repositorio>" -ForegroundColor Cyan
-    Write-Host "   # ou use o alias" -ForegroundColor Yellow
-    Write-Host "   mdr <caminho-do-repositorio>" -ForegroundColor Cyan
+    Write-Host "`n$($emoji.Rocket) Para usar:"
+    Write-Host "    mdr [caminho-do-repositorio]"
 }
 catch {
-    Write-Error "$($emoji.Warning) Erro durante a instalacao: $_"
-    exit 1
+    Write-Error "Erro durante a instalação: $_"
 }
