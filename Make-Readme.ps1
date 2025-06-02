@@ -44,7 +44,7 @@ try {
     $language = if ($response.language) { $response.language } else { "Not specified" }
 
     $prompt = @"
-Responda apenas o pedido. Gere um README.md em markdown para o seguinte projeto:
+Responda apenas o pedido. Gere um README.md em markdown para explicar com detalhes o intuito, como funciona e como contribuir para o seguinte projeto (Use emojis nos títulos):
 Nome: $repoName
 Descrição: $description
 Linguagem: $language
@@ -83,18 +83,33 @@ URL: https://github.com/$repoSlug
         $output = & $geradorPath @argumentos | Out-String
 
         if ($LASTEXITCODE -eq 0) {
-            $readme = $output.Trim() -replace "`r`n", "`n"
+            $readme = $output
+
+            $lines = $readme -split "`n"
             
-            $readme = $readme -replace '```markdown\s*', '' -replace '```\s*$', ''
+            $formattedLines = $lines | ForEach-Object {
+                $line = $_
+                
+                if ($line -match '^```markdown\s*$' -or $line -match '^\s*```\s*$') {
+                    return $null
+                }
+                
+                return $line
+            }
             
-            $readme = $readme -replace '(?m)^#', "`n#" -replace '\n{3,}', "`n`n"
+            $readme = ($formattedLines | Where-Object { $_ -ne $null }) -join "`n"
+            
+            $readme = $readme -replace '<!--\s*BEGIN AUTO README\s*-->', ''
+            $readme = $readme -replace '<!--\s*END AUTO README\s*-->', ''
+
+            $readme = $readme.Trim()
+
+            if ([string]::IsNullOrEmpty($readme)) {
+                throw "No output generated from gerador_readme.exe"
+            }
         }
         else {
             throw "gerador_readme.exe failed with exit code $LASTEXITCODE`nOutput: $output"
-        }
-
-        if ([string]::IsNullOrEmpty($readme)) {
-            throw "No output generated from gerador_readme.exe"
         }
     }
     catch {

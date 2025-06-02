@@ -31,7 +31,7 @@ git clone https://github.com/leodipaula/make-readme.git
 cd make-readme
 ```
 
-2. Crie um arquivo `.env` na raiz do projeto com sua chave da Hugging Face:
+2. Crie um arquivo `.env` na raiz da pasta gerador_readme com sua chave da Hugging Face:
 
 ```env
 HUGGINGFACE_TOKEN=seu_token_aqui
@@ -63,16 +63,16 @@ Depois de abrir um novo terminal:
 
 ```powershell
 Make-Readme "C:\caminho\para\seu\repositorio"
+
+#ou também:
+
+Make-Readme . # Gera README para um repositório específico
+
+#O mesmo serve com o alias mr
 ```
 O script irá gerar (ou sobrescrever) um README.md com base nas informações do repositório.
 
-O comando é o mesmo em todas as plataformas:
-
-```powershell
-mr .  # Gera README para o diretório atual
-# ou
-mr /caminho/para/repositorio  # Gera README para um repositório específico
-```
+O comando é o mesmo em todas as plataformas.
 
 ## 🐳 Execução via Docker
 

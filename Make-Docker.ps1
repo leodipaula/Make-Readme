@@ -93,7 +93,7 @@ try {
     $language = if ($response.language) { $response.language } else { "Not specified" }
 
     $prompt = @"
-Responda apenas o pedido. Gere um README.md em markdown para o seguinte projeto:
+Responda apenas o pedido. Gere um README.md em markdown para explicar com detalhes o intuito, como funciona e como contribuir para o seguinte projeto (Use emojis nos títulos):
 Nome: $repoName
 Descrição: $description
 Linguagem: $language
@@ -118,28 +118,28 @@ if ($envContent -match 'HUGGINGFACE_API_TOKEN=(.+)') {
 }
 
 if (-not $token) {
-    Write-Error "❌ HUGGINGFACE_API_TOKEN not found in .env file"
+    Write-Error "❌ HUGGINGFACE_API_TOKEN não encontrada em gerador_readme/src/.env"
     exit 1
 }
 
-Write-Host "🐳 Checking Docker image..."
+Write-Host "Checando se já existe a imagem make-readme..."
 try {
     Push-Location $PSScriptRoot
     
     $imageExists = docker images -q make-readme 2>$null
     
     if (-not $imageExists) {
-        Write-Host "🏗️ Building new image..." -ForegroundColor Yellow
+        Write-Host "🏗️ Construindo nova imagem..." -ForegroundColor Yellow
         docker build --platform linux/amd64 -t make-readme .
         
         if ($LASTEXITCODE -ne 0) {
             throw "Falha ao construir imagem Docker"
         }
         
-        Write-Host "✅ Docker image built successfully" -ForegroundColor Green
+        Write-Host "✅ Imagem Docker construída" -ForegroundColor Green
     }
     else {
-        Write-Host "✅ Using existing Docker image" -ForegroundColor Green
+        Write-Host "✅ Usando a imagem existente" -ForegroundColor Green
     }
     
     Pop-Location
@@ -165,19 +165,37 @@ else {
 
 Write-Host "🚀 Running container..."
 try {
+    $escapedPrompt = $prompt -replace '"', '\"'
+
     $containerOutput = docker run --rm `
         -v "${dockerVolume}:/repo" `
         -e "HUGGINGFACE_API_TOKEN=$token" `
-        -e "PROMPT=$prompt" `
-        make-readme 2>&1
+        make-readme --prompt "$escapedPrompt" 2>&1
 
     if ($LASTEXITCODE -ne 0) {
         throw "Container execution failed: $($containerOutput)"
     }
 
-    $readme = $containerOutput.Trim() -replace "`r`n", "`n"
-    $readme = $readme -replace '```markdown\s*', '' -replace '```\s*$', ''
-    $readme = $readme -replace '(?m)^#', "`n#" -replace '\n{3,}', "`n`n"
+    $readme = $containerOutput
+
+    $lines = $readme -split "`n"
+    
+    $formattedLines = $lines | ForEach-Object {
+        $line = $_
+        
+        if ($line -match '^```markdown\s*$' -or $line -match '^\s*```\s*$') {
+            return $null
+        }
+        
+        return $line
+    }
+    
+    $readme = ($formattedLines | Where-Object { $_ -ne $null }) -join "`n"
+    
+    $readme = $readme -replace '<!--\s*BEGIN AUTO README\s*-->', ''
+    $readme = $readme -replace '<!--\s*END AUTO README\s*-->', ''
+
+    $readme = $readme.Trim()
 
     $readmePath = Join-Path $RepoPath "README.md"
 
@@ -196,7 +214,7 @@ $readme
         else {
             Copy-Item -Path $readmePath -Destination "$readmePath.backup" -Force
             Set-Content -Path $readmePath -Value $readme -Encoding UTF8
-            Write-Host "✅ README.md overwritten (backup saved as README.md.backup)."
+            Write-Host "✅ README.md sobrescrito (backup salvo em README.md.backup)."
         }
     }
     else {
@@ -206,7 +224,7 @@ $readme
 <!-- END AUTO README -->
 "@
         Set-Content -Path $readmePath -Value $wrapped -Encoding UTF8
-        Write-Host "✅ README.md created successfully at: $readmePath"
+        Write-Host "✅ README.md feito com sucesso, confira em: $readmePath"
     }
 }
 catch {
